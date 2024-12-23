@@ -4,5 +4,8 @@
 - 2-dim’l subspace by shifting a circle by +1 repeatedly in an orthogonal direction
 - e.g. in F_{3^4} one could visualize F_{3^2} with 9 points which are three triangles, e.g. the x0x1-plane
 
+tools:
+- geometry nodes in blender
+
 future directions:
-- promote to 3d visualization using Blender
+- promote to 3d visualization using blender
