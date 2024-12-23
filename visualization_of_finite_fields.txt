@@ -1,0 +1,8 @@
+- discrete circle of q-1 points around the origin
+- different color circles for each 1-dim’l subspace (coordinate axes)
+- note subspaces also have a zero, which can be omitted, so they are circles of size q'-1, and note q'-1 | q-1 when q = p^r and q' = p^r' and r'|r
+- 2-dim’l subspace by shifting a circle by +1 repeatedly in an orthogonal direction
+- e.g. in F_{3^4} one could visualize F_{3^2} with 9 points which are three triangles, e.g. the x0x1-plane
+
+future directions:
+- promote to 3d visualization using Blender
