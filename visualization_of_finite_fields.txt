@@ -6,6 +6,7 @@
 
 tools:
 - geometry nodes in blender
+- grease pencil in blender
 
 future directions:
 - promote to 3d visualization using blender
