@@ -1,6 +1,7 @@
 import bpy
 import pickle
 import numpy as np
+import os
 
 print("beginning script to visualize neural networks...")
 
@@ -113,3 +114,39 @@ for obj in objects:
                 keyframe.interpolation = 'LINEAR'
 
 print(f"Animation keyframes added for {len(hidden_space_trajectory)} epochs.")
+
+
+# Add a camera (if not already present)
+if "Camera" not in bpy.data.objects:
+    bpy.ops.object.camera_add(location=(0, -10, 5))  # Position the camera
+camera = bpy.context.object
+
+# Set camera as the active camera
+bpy.context.scene.camera = camera
+
+# Add a light source
+bpy.ops.object.light_add(type='POINT', location=(0, 0, 10))
+light = bpy.context.object
+light.data.energy = 1000  # Set the intensity of the light
+
+# Rendering setup (add this part)
+bpy.context.scene.render.resolution_x = 1920  # Set the resolution width
+bpy.context.scene.render.resolution_y = 1080  # Set the resolution height
+bpy.context.scene.render.fps = 24  # Set the frames per second
+
+# Set the frame range (e.g., from frame 1 to the last frame)
+bpy.context.scene.frame_start = 1
+#bpy.context.scene.frame_end = layer_2_start + (len(hidden_space_trajectory) - 1) * frame_step
+bpy.context.scene.frame_end = 10
+
+# Set the output directory and file format (e.g., FFmpeg for video)
+output_directory = "/Users/jacksonwalters/Documents/GitHub/blender/neural_network_viz/render_output/"
+bpy.context.scene.render.filepath = os.path.join(output_directory, "animation_output.mp4")
+bpy.context.scene.render.image_settings.file_format = 'FFMPEG'
+bpy.context.scene.render.ffmpeg.format = 'MPEG4'
+bpy.context.scene.render.ffmpeg.codec = 'H264'
+
+# Trigger the rendering process
+print("Rendering animation...")
+bpy.ops.render.render(animation=True, write_still=False)
+print("Rendering completed!")
