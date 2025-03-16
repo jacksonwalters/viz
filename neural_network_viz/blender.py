@@ -7,7 +7,7 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 
 # Path to the pickled file
-pickle_file_path = "/home/xeno/Documents/cs506/cs506-blender/neuralnetwork/hidden_space_and_points.pkl"
+pickle_file_path = "/Users/jacksonwalters/Documents/GitHub/blender/neural_network_viz/hidden_space_and_points.pkl"
 
 # Load the pickled data
 with open(pickle_file_path, "rb") as f:
