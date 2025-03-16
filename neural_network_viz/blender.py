@@ -2,6 +2,8 @@ import bpy
 import pickle
 import numpy as np
 
+print("beginning script to visualize neural networks...")
+
 # Clear the scene
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
@@ -10,8 +12,10 @@ bpy.ops.object.delete(use_global=False)
 pickle_file_path = "/Users/jacksonwalters/Documents/GitHub/blender/neural_network_viz/hidden_space_and_points.pkl"
 
 # Load the pickled data
+print("loading pickle file...")
 with open(pickle_file_path, "rb") as f:
     data = pickle.load(f)
+print("pickle file loaded.")
 
 # Create materials
 def create_material(name, base_color, opacity):
