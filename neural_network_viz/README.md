@@ -2,7 +2,7 @@
 
 This is a collection of notebooks, and blender python scripts that work in conjunction to create interactive visualizations of data science concepts.
 
-This is from: [https://github.com/jacksonwalters/cs506-blender](https://github.com/ohlookitsxeno/cs506-blender)
+This is from: https://github.com/ohlookitsxeno/cs506-blender
 
 ## Environment Setup
 
