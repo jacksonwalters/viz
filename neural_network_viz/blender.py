@@ -136,8 +136,9 @@ bpy.context.scene.render.fps = 24  # Set the frames per second
 
 # Set the frame range (e.g., from frame 1 to the last frame)
 bpy.context.scene.frame_start = 1
-#bpy.context.scene.frame_end = layer_2_start + (len(hidden_space_trajectory) - 1) * frame_step
-bpy.context.scene.frame_end = 10
+bpy.context.scene.frame_end = layer_2_start + (len(hidden_space_trajectory) - 1) * frame_step
+#bpy.context.scene.frame_end = 10
+print("bpy.context.scene.frame_end = ", bpy.context.scene.frame_end)
 
 # Set the output directory and file format (e.g., FFmpeg for video)
 output_directory = "/Users/jacksonwalters/Documents/GitHub/blender/neural_network_viz/render_output/"
