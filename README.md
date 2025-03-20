@@ -1,5 +1,6 @@
 # blender
-tutorials in 3d modeling software blender. visualizations using matplotlib
+
+visualizations using 3d modeling software blender, matplotlib, or various other tools
 
 **Neural Networks**
 
