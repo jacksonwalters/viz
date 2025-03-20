@@ -1,2 +1,2 @@
 # blender
-tutorials in 3d modeling software blender
+tutorials in 3d modeling software blender. visualizations using matplotlib
