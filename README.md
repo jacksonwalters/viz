@@ -4,7 +4,7 @@ visualizations using 3d modeling software blender, matplotlib, or various other 
 
 **Neural Networks**
 
-Uses cs506 blender visualization to create video of labeled [green/red] data moving through a neural network.
+Uses cs506 blender visualization to create video of labeled data predictions in a neural network.
 
 **Finite Fields**
 
