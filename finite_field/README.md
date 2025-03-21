@@ -12,4 +12,4 @@ That is, $F_q \cong F_p[x]/(f(x))$ where $f(x)$ is a suitable polynomial of degr
 
 One can then see the interplay of the multiplicative structure (a cyclic group of size $q-1$) and the additive structure (an $F_p$ vector space).
 
-![F_25](finite_field_viz/images/finite_field_25.jpeg)
+![F_25](images/finite_field_25.jpeg)
