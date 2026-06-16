@@ -6,6 +6,7 @@ Run with Sage's Python, for example:
     sage -python grassmannian.py count --q 2 --r 4
     sage -python grassmannian.py schubert --q 5 --r 4 --sizes
     sage -python grassmannian.py pg-lines --q 2 --output images/gr_2_4_pg_3_2.png
+    sage -python grassmannian.py schubert-gallery --q 2 --output-dir images/schubert_q2
     sage -python grassmannian.py graph --q 2 --r 4 --k 2 --output images/grassmann_graph_2_4_2.png
     sage -python grassmannian.py subspace --q 5 --r 4 --index 0 --output images/gr_2_4_subspace_0.png
 """
@@ -29,6 +30,8 @@ SCHUBERT_COLORS = {
     (1, 3): "#72b7b2",
     (2, 3): "#b279a2",
 }
+
+SCHUBERT_CELLS_2_4 = tuple(SCHUBERT_COLORS.keys())
 
 
 def ensure_parent(path):
@@ -156,15 +159,27 @@ def parse_cell(cell_text):
     return tuple(int(part) for part in parts)
 
 
+def parse_cells(cell_texts):
+    if not cell_texts:
+        return list(SCHUBERT_CELLS_2_4)
+    return [parse_cell(cell_text) for cell_text in cell_texts]
+
+
+def cell_slug(cell):
+    return f"{cell[0]}_{cell[1]}"
+
+
 def plot_gr_2_4_as_pg_lines(
     q,
     output_filename=None,
     show=True,
     labels=False,
     highlight_index=None,
+    highlight_cell=None,
     cell_filter=None,
     connect="auto",
     line_alpha=None,
+    background_alpha=None,
     line_width=1.0,
     dpi=300,
 ):
@@ -190,6 +205,8 @@ def plot_gr_2_4_as_pg_lines(
 
     if line_alpha is None:
         line_alpha = 0.22 if q <= 2 else 0.06
+    if background_alpha is None:
+        background_alpha = 0.055 if q <= 2 else 0.025
 
     fig, ax = plt.subplots(figsize=(13, 7.5))
 
@@ -197,15 +214,24 @@ def plot_gr_2_4_as_pg_lines(
     if highlight_index is not None:
         selected_record = records[highlight_index % len(records)]
 
+    highlighted_cell_records = []
+    if highlight_cell is not None:
+        highlighted_cell_records = [record for record in records_to_draw if record["cell"] == highlight_cell]
+        if not highlighted_cell_records:
+            raise ValueError(f"no records found for Schubert cell {highlight_cell}")
+
+    focus_mode = selected_record is not None or highlight_cell is not None
+
     for record in records_to_draw:
         color = SCHUBERT_COLORS.get(record["cell"], "#888888")
         alpha = line_alpha
         width = line_width
         zorder = 1
 
-        if selected_record is not None:
+        if focus_mode:
             color = "#b8b8b8"
-            alpha = min(alpha, 0.045 if q > 2 else 0.09)
+            alpha = background_alpha
+            width = min(width, 0.8)
 
         draw_line_segments(
             ax,
@@ -216,6 +242,34 @@ def plot_gr_2_4_as_pg_lines(
             linewidth=width,
             connect=base_connect,
             zorder=zorder,
+        )
+
+    if highlighted_cell_records:
+        highlight_color = SCHUBERT_COLORS.get(highlight_cell, "#d62728")
+        highlighted_points = set()
+        for record in highlighted_cell_records:
+            highlighted_points.update(record["points"])
+            draw_line_segments(
+                ax,
+                record["points"],
+                coordinates,
+                color=highlight_color,
+                alpha=0.82,
+                linewidth=max(line_width, 1.7),
+                connect=base_connect,
+                zorder=3,
+            )
+
+        selected_x = [coordinates[point][0] for point in highlighted_points]
+        selected_y = [coordinates[point][1] for point in highlighted_points]
+        ax.scatter(
+            selected_x,
+            selected_y,
+            s=66 if q <= 2 else 48,
+            color=highlight_color,
+            edgecolor="white",
+            linewidth=0.9,
+            zorder=6,
         )
 
     if selected_record is not None:
@@ -274,10 +328,22 @@ def plot_gr_2_4_as_pg_lines(
     for record in records_to_draw:
         cell_counts[record["cell"]] = cell_counts.get(record["cell"], 0) + 1
 
-    handles = [
-        Line2D([0], [0], color=SCHUBERT_COLORS.get(cell, "#888888"), linewidth=2, label=f"{cell}: {count}")
-        for cell, count in sorted(cell_counts.items())
-    ]
+    if highlight_cell is not None:
+        handles = [
+            Line2D([0], [0], color="#b8b8b8", alpha=0.45, linewidth=2, label=f"context: {len(records_to_draw)}"),
+            Line2D(
+                [0],
+                [0],
+                color=SCHUBERT_COLORS.get(highlight_cell, "#d62728"),
+                linewidth=3,
+                label=f"{highlight_cell}: {len(highlighted_cell_records)}",
+            ),
+        ]
+    else:
+        handles = [
+            Line2D([0], [0], color=SCHUBERT_COLORS.get(cell, "#888888"), linewidth=2, label=f"{cell}: {count}")
+            for cell, count in sorted(cell_counts.items())
+        ]
     if selected_record is not None:
         handles.append(Line2D([0], [0], color="#d62728", linewidth=3, label=f"highlight {selected_record['index']}"))
     if handles:
@@ -286,7 +352,9 @@ def plot_gr_2_4_as_pg_lines(
     title = rf"$Gr(2,4)(\mathbb{{F}}_{q})$ as projective lines in $PG(3,{q})$"
     subtitle = f"{len(records)} lines, {len(points)} projective points"
     if cell_filter is not None:
-        subtitle += f", cell {cell_filter}"
+        subtitle += f", only cell {cell_filter}"
+    if highlight_cell is not None:
+        subtitle += f", highlighted cell {highlight_cell}"
     ax.set_title(f"{title}\n{subtitle}", fontsize=15)
 
     ax.set_aspect("equal", adjustable="box")
@@ -304,6 +372,41 @@ def plot_gr_2_4_as_pg_lines(
         plt.close(fig)
 
     return records
+
+
+def generate_schubert_cell_gallery(
+    q,
+    output_dir,
+    cells=None,
+    show=False,
+    labels=False,
+    connect="auto",
+    line_alpha=None,
+    background_alpha=None,
+    line_width=1.0,
+    dpi=300,
+):
+    output_path = Path(output_dir)
+    generated = []
+
+    for cell in cells or list(SCHUBERT_CELLS_2_4):
+        filename = output_path / f"gr_2_4_pg_3_{q}_schubert_{cell_slug(cell)}.png"
+        records = plot_gr_2_4_as_pg_lines(
+            q,
+            output_filename=filename,
+            show=show,
+            labels=labels,
+            highlight_cell=cell,
+            connect=connect,
+            line_alpha=line_alpha,
+            background_alpha=background_alpha,
+            line_width=line_width,
+            dpi=dpi,
+        )
+        count = sum(1 for record in records if record["cell"] == cell)
+        generated.append((cell, count, filename))
+
+    return generated
 
 
 def gr_2_naive(q, r):
@@ -545,11 +648,25 @@ def build_parser():
     pg_lines.add_argument("--no-show", action="store_true", help="Save or compute without opening a window.")
     pg_lines.add_argument("--labels", action="store_true", help="Label projective points by normalized coordinates.")
     pg_lines.add_argument("--highlight-index", type=int, help="Emphasize one Grassmannian element by index.")
+    pg_lines.add_argument("--highlight-cell", help="Emphasize one Schubert cell, for example '0,1'.")
     pg_lines.add_argument("--cell", help="Only draw one Schubert cell, for example '0,1'.")
     pg_lines.add_argument("--connect", choices=["auto", "path", "complete"], default="auto")
     pg_lines.add_argument("--alpha", type=float, help="Line opacity for non-highlighted projective lines.")
+    pg_lines.add_argument("--background-alpha", type=float, help="Context-line opacity when highlighting.")
     pg_lines.add_argument("--line-width", type=float, default=1.0)
     pg_lines.add_argument("--dpi", type=int, default=300)
+
+    gallery = subparsers.add_parser("schubert-gallery", help="Generate one highlighted PG-line image per Schubert cell.")
+    gallery.add_argument("--q", type=int, default=2)
+    gallery.add_argument("--output-dir", default="images/schubert_cells", help="Directory for generated cell images.")
+    gallery.add_argument("--cells", nargs="*", help="Optional cells to generate, for example 0,1 1,3.")
+    gallery.add_argument("--show", action="store_true", help="Open plots as they are generated.")
+    gallery.add_argument("--labels", action="store_true", help="Label projective points by normalized coordinates.")
+    gallery.add_argument("--connect", choices=["auto", "path", "complete"], default="auto")
+    gallery.add_argument("--alpha", type=float, help="Line opacity for non-highlighted projective lines.")
+    gallery.add_argument("--background-alpha", type=float, help="Context-line opacity when highlighting.")
+    gallery.add_argument("--line-width", type=float, default=1.0)
+    gallery.add_argument("--dpi", type=int, default=300)
 
     subspace = subparsers.add_parser("subspace", help="Plot one Gr(2,r)(F_q) point on the GF(q^r) circle.")
     subspace.add_argument("--q", type=int, default=5)
@@ -585,13 +702,30 @@ def main():
             show=not args.no_show,
             labels=args.labels,
             highlight_index=args.highlight_index,
+            highlight_cell=parse_cell(args.highlight_cell),
             cell_filter=parse_cell(args.cell),
             connect=args.connect,
             line_alpha=args.alpha,
+            background_alpha=args.background_alpha,
             line_width=args.line_width,
             dpi=args.dpi,
         )
         print(f"Gr(2,4)(F_{args.q}) as PG(3,{args.q}) lines: {len(records)} lines")
+    elif args.command == "schubert-gallery":
+        generated = generate_schubert_cell_gallery(
+            args.q,
+            args.output_dir,
+            cells=parse_cells(args.cells),
+            show=args.show,
+            labels=args.labels,
+            connect=args.connect,
+            line_alpha=args.alpha,
+            background_alpha=args.background_alpha,
+            line_width=args.line_width,
+            dpi=args.dpi,
+        )
+        for cell, count, filename in generated:
+            print(f"cell {cell}: {count} lines -> {filename}")
     elif args.command == "subspace":
         plot_2d_subspace_finite_field(
             args.q,
